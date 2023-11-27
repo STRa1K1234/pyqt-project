@@ -14,8 +14,8 @@ class SpeedTypingTest(QWidget):
         self.timer.start(1000)  # Таймер срабатывает каждую секунду
         self.stopped = False  # Устанавливаем флаг остановки в False
 
-    def init(self):
-        super().init()
+    def __init__(self):
+        super().__init__()
         self.initUI()
 
     def initUI(self):
@@ -24,31 +24,31 @@ class SpeedTypingTest(QWidget):
         self.setWindowTitle('Speed Typing Test')
 
         self.label = QLabel('Type the following sentence:', self)
-        self.label.move(20, 20) # установка условий
+        self.label.move(20, 20)
 
         self.sentence = QLabel('The quick brown fox jumps over the lazy dog', self)
-        self.sentence.setGeometry(20, 40, 360, 20)  # установка строки
+        self.sentence.setGeometry(20, 40, 360, 20)
 
         self.input = QLineEdit(self)
         self.input.setGeometry(20, 70, 360, 20)
-        self.input.installEventFilter(self)  # создание окна
+        self.input.installEventFilter(self)
 
         self.startButton = QPushButton('Start', self)
         self.startButton.setGeometry(20, 100, 80, 30)
         self.startButton.clicked.connect(self.startTest)  # Привязываем нажатие кнопки "Start" к методу startTest
 
         self.timerLabel = QLabel('Time: 0 seconds', self)
-        self.timerLabel.setGeometry(300, 100, 100, 30)  # установка таймера
+        self.timerLabel.setGeometry(300, 100, 100, 30)
 
         self.speedLabel = QLabel('Speed: 0 characters/minute', self)
-        self.speedLabel.setGeometry(20, 120, 150, 30)   # установка скорости
+        self.speedLabel.setGeometry(20, 120, 150, 30)
 
         self.timer = QTimer()  # Создаем таймер для отслеживания времени
         self.timeElapsed = 0  # Переменная для отслеживания прошедшего времени
         self.stopped = False  # Флаг остановки для отслеживания завершения теста
 
     def startTest(self):
-        # Начало теста
+        # Метод начала теста
         self.input.setFocus()
         self.input.clear()
         self.timeElapsed = 0
@@ -86,7 +86,6 @@ class SpeedTypingTest(QWidget):
         resultLabel.show()
 
 
-# запуск программы
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = SpeedTypingTest()
