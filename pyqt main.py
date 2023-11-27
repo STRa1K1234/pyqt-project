@@ -1,95 +1,80 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QLineEdit, QPushButton
-from PyQt5.QtCore import QTimer, Qt, QTime
-from PyQt5.QtGui import QFont  # Add QFont import
-import random
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton
+from PyQt5.QtGui import QFont
+from PyQt5.QtCore import QTimer, Qt, QEvent
 
-class TimerApp(QWidget):
-    def __init__(self):  # Correct the init method name
-        super().__init__()  # Correct the super() call
-        layout = QVBoxLayout()
 
-        self.random_line = self.get_random_line()  # Store the random line
-        self.random_line_label = QLabel(self.random_line, self)
-        self.random_line_label.setFont(QFont("Arial", 14))  # Set a larger font for the random_line_label
-        layout.addWidget(self.random_line_label)
+class SpeedTypingTest(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
 
-        self.timer_label = QLabel("Enter time in seconds:", self)
-        self.timer_label.setFont(QFont("Arial", 14))  # Set a larger font for the timer_label
-        layout.addWidget(self.timer_label)
+    def initUI(self):
+        self.setGeometry(100, 100, 400, 200)
+        self.setWindowTitle('Speed Typing Test')
 
-        self.input_timer = QLineEdit(self)
-        self.input_timer.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.input_timer)
+        self.label = QLabel('Type the following sentence and press "enter":', self)
+        self.label.move(20, 20)
 
-        self.start_button = QPushButton("Start Timer", self)
-        self.start_button.clicked.connect(self.start_timer)
-        layout.addWidget(self.start_button)
+        self.sentence = QLabel('The quick brown fox jumps over the lazy dog', self)
+        self.sentence.setGeometry(20, 40, 360, 20)
 
-        self.error_label = QLabel("", self)
-        layout.addWidget(self.error_label)
+        self.input = QLineEdit(self)
+        self.input.setGeometry(20, 70, 360, 20)
+        self.input.installEventFilter(self)
 
-        self.typing_speed_label = QLabel("", self)
-        layout.addWidget(self.typing_speed_label)
+        self.startButton = QPushButton('Start', self)
+        self.startButton.setGeometry(20, 100, 80, 30)
+        self.startButton.clicked.connect(self.startTest)
 
-        self.setLayout(layout)
+        self.timerLabel = QLabel('Time: 0 seconds', self)
+        self.timerLabel.setGeometry(300, 100, 100, 30)
 
-        self.timer_counter = QTimer()
-        self.timer_counter.timeout.connect(self.update_timer)
-        self.current_timer_value = 0  # Store the current timer value for reference
+        self.timer = QTimer()
+        self.timeElapsed = 0
+        self.stopped = False
 
-    def start_timer(self):
-        self.start_button.setEnabled(False)  # Disable the start button
-        self.current_timer_value = int(self.input_timer.text())
-        self.timer_label.setText("Timer: " + str(self.format_time(self.current_timer_value)))  # Format the time using format_time method
-        self.input_timer.clear()
-        self.input_timer.textChanged.connect(self.check_input)  # Connect the text changed signal to check_input method
-        self.timer_counter.start(1000)
+    def startTest(self):
+        self.input.setFocus()
+        self.input.clear()
+        self.timeElapsed = 0
+        self.timer.timeout.connect(self.updateTime)
+        self.timer.start(1000)
+        self.stopped = False
 
-    def check_input(self, text):
-        if text != self.random_line:  # Check if the input text matches the random line
-            self.start_button.setEnabled(False)  # Disable the start button if the input is incorrect
-        else:
-            self.start_button.setEnabled(True)  # Enable the start button if the input is correct
+    def eventFilter(self, obj, event):
+        if obj is self.input and event.type() == QEvent.KeyPress and event.key() in (
+        Qt.Key_Return, Qt.Key_Enter) and not self.stopped:
+            self.timer.stop()
+            self.stopped = True
+            accuracy = self.calculateAccuracy()
+            self.showResult(accuracy)
 
-    def update_timer(self):
-        self.current_timer_value -= 1
-        if self.current_timer_value < 0:  # Check if the timer has expired
-            self.timer_counter.stop()
-            self.timer_label.setText("Time's up!")
-            self.input_timer.hide()  # Hide the input field when the timer expires
-            error_count = self.calculate_errors(self.input_timer.text())
-            typing_speed = self.calculate_typing_speed(self.input_timer.text())
-            self.error_label.setText(f"Errors: {error_count}")  # Update the error count label
-            self.typing_speed_label.setText(f"Typing speed: {typing_speed} characters per minute")  # Update the typing speed label
-        else:
-            self.timer_label.setText("Timer: " + str(self.format_time(self.current_timer_value)))  # Format the time using format_time method
+        return super().eventFilter(obj, event)
 
-    def format_time(self, seconds):  # Method to format time from seconds to MM:SS format
-        return QTime(0, seconds // 60, seconds % 60).toString("mm:ss")
+    def updateTime(self):
+        self.timeElapsed += 1
+        self.timerLabel.setText(f'Time: {self.timeElapsed} seconds')
 
-    def calculate_errors(self, input_text):  # Method to calculate the number of errors in the input text
-        error_count = 0
-        for i in range(len(self.random_line)):
-            if i >= len(input_text) or input_text[i] != self.random_line[i]:
-                error_count += 1
-        return error_count
+    def calculateAccuracy(self):
+        sentence = self.sentence.text()
+        userInput = self.input.text()
+        correctCharacters = sum(1 for i, j in zip(sentence, userInput) if i == j)
+        accuracy = (correctCharacters / len(sentence)) * 100
+        return accuracy
 
-    def calculate_typing_speed(self, input_text):  # Method to calculate the typing speed
-        time_taken = int(self.timer_label.text().split(":")[1])  #
-        typing_speed = int(len(input_text) / (time_taken / 60))  # Calculate characters per minute
-        return typing_speed
+    def showResult(self, accuracy):
+        resultLabel = QLabel(f'Accuracy: {accuracy:.2f}% \nTime: {self.timeElapsed} seconds', self)
+        resultLabel.move(20, 140)
+        resultLabel.setFont(QFont('Arial', 10))
+        resultLabel.show()
 
-    def get_random_line(self):
-        with open('input.txt', encoding='utf8') as f:
-            lines = f.readlines()
-        return random.choice(lines).strip()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    timer_app = TimerApp()
-    timer_app.show()
-    timer_app.setGeometry(100, 100, 400, 200)
-    app.processEvents()
+    ex = SpeedTypingTest()
+    ex.show()
     sys.exit(app.exec_())
 
+# TODO исправить наложение текста при повторном нажатии на старт
+# TODO добавить датабазу
