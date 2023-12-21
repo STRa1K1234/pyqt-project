@@ -22,7 +22,7 @@ class SpeedTypingTest(QWidget):
 
     def initUI(self):
         # Настройка интерфейса
-        self.setGeometry(100, 100, 750, 200)
+        self.setGeometry(100, 100, 415, 200)
         self.setStyleSheet("background-color: #C3E1C9;")
         self.setWindowTitle('Speed Typing Test')
 
