@@ -45,6 +45,7 @@ class SpeedTypingTest(QWidget):
 
         self.speedLabel = QLabel('Speed: 0 characters/minute', self)
         self.speedLabel.setGeometry(20, 120, 200, 30)   # установка скорости
+        self.speedLabel.setGeometry(20, 120, 250, 30)   # установка скорости
 
         self.timer = QTimer()  # Создаем таймер для отслеживания времени
         self.timeElapsed = 0  # Переменная для отслеживания прошедшего времени
@@ -119,4 +120,5 @@ if __name__ == '__main__':
     ex = SpeedTypingTest()
     ex.show()
     sys.exit(app.exec_())
+
 
